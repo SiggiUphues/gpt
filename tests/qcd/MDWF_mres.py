@@ -43,5 +43,8 @@ prop5D = g( D5_inv * src5D )
 g.message("Extract 4D propagator")
 prop4D = g( exp * prop5D )
 
+g.message(prop5D)
+g.message(prop4D)
+
 # Pion correlator
 #g.message(g.slice(g.trace(prop * g.adj(prop)), 3))
