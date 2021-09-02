@@ -46,5 +46,14 @@ prop4D = g( exp * prop5D )
 g.message(prop5D)
 g.message(prop4D)
 
+g.message("Dimension of 5D propagator:")
+g.message(len(prop5D))
+g.message("Shape of 5D propagator:")
+g.message(np.shape(prop5D))
+g.message("Dimension of 4D propagator:")
+g.message(len(prop4D))
+g.message("Shape of 4D propagator:")
+g.message(np.shape(prop4D))
+
 # Pion correlator
 #g.message(g.slice(g.trace(prop * g.adj(prop)), 3))
