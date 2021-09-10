@@ -4,20 +4,20 @@ import gpt as g
 
 # Fill cache before doing wanted calculations
 
-grid2 = g.grid([16,16,16,16], g.double)
+#grid2 = g.grid([16,16,16,16], g.double)
 
-g.message(grid2)
+#g.message(grid2)
 
-g.mem_report()
+#g.mem_report()
 
 #create field of complex numbers
 
-comp = g.complex(grid2)
-comp[:]=0
+#comp = g.complex(grid2)
+#comp[:]=0
 
-g.message(c)
+#g.message(comp)
 
-g.mem_report()
+#g.mem_report()
 
 # Double-precision 8^4 grid
 grid = g.grid([8,8,8,8], g.double)
@@ -37,7 +37,7 @@ inv = g.algorithms.inverter
 pc = g.qcd.fermion.preconditioner
 
 # Even-odd-preconditioned CG solver
-slv_5d = inv.preconditioned(pc.eo2_ne(), inv.cg(eps = 1e-4, maxiter = 1000))
+slv_5d = inv.preconditioned(pc.eo2_ne(), inv.cg(eps = 1e-8, maxiter = 1000))
 
 #D5_inv=slv_5d(fermion)
 
@@ -65,9 +65,9 @@ D5_inv=g.matrix_operator(
             otype=(fermion.otype[0], imp.otype[1]),
             grid=(fermion.F_grid, imp.grid[1]),
             accept_list=True,
-        ).grouped(1)
+        )
 
-#propagator5D = g( D5_inv * src4D)
+propagator5D = g( D5_inv * src4D)
 #propagator4D = g( exp * D5_inv * src4D)
 
 g.mem_report()
