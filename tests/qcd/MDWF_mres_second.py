@@ -1,5 +1,24 @@
 import gpt as g
 
+
+
+# Fill cache before doing wanted calculations
+
+grid2 = g.grid([16,16,16,16], g.double)
+
+g.message(grid2)
+
+g.mem_report()
+
+#create field of complex numbers
+
+comp = g.complex(grid2)
+comp[:]=0
+
+g.message(c)
+
+g.mem_report()
+
 # Double-precision 8^4 grid
 grid = g.grid([8,8,8,8], g.double)
 
@@ -46,9 +65,10 @@ D5_inv=g.matrix_operator(
             otype=(fermion.otype[0], imp.otype[1]),
             grid=(fermion.F_grid, imp.grid[1]),
             accept_list=True,
-        )
+        ).grouped(1)
 
-propagator5D = g( D5_inv * src4D)
+#propagator5D = g( D5_inv * src4D)
+#propagator4D = g( exp * D5_inv * src4D)
 
 g.mem_report()
 # Solve propagator on 12 spin-color components
