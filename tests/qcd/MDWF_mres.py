@@ -1,8 +1,11 @@
 import gpt as g
 import numpy as np
 
+
+
 # Double-precision 8^4 grid
-grid = g.grid([8,8,8,8], g.double)
+grid = g.grid([8,8,8,16], g.double)
+Ls=12
 
 # Parallel random number generator
 #rng = g.random("seed text")
@@ -11,7 +14,7 @@ grid = g.grid([8,8,8,8], g.double)
 U = g.qcd.gauge.unit(grid)
 
 # Mobius domain-wall fermion
-fermion = g.qcd.fermion.mobius(U, mass=0.1, M5=1.8, b=1.5, c=0.5, Ls=12,
+fermion = g.qcd.fermion.mobius(U, mass=0.1, M5=1.8, b=1.5, c=0.5, Ls=Ls,
                                boundary_phases=[1,1,1,-1])
 
 # Short-cuts
@@ -42,17 +45,54 @@ prop5D = g( D5_inv * src5D )
 g.message("Extract 4D propagator")
 prop4D = g( exp * prop5D )
 #
-#g.message(prop5D)
-#g.message(prop4D)
+#g.message(np.shape(prop5D[Ls-1,:,:,:,:]))
+#g.message(prop5D.otype)
+#g.message(prop4D.otype)
+g.message("Ls = ",len(prop5D[:,0,0,0,0]))
+g.message("Nx = ",len(prop5D[0,:,0,0,0]))
+g.message("Ny = ",len(prop5D[0,0,:,0,0]))
+g.message("Nz = ",len(prop5D[0,0,0,:,0]))
+g.message("Nt = ",len(prop5D[0,0,0,0,:]))
 #
-g.message("Dimension of 5D propagator:")
-#g.message(len(prop5D))
-g.message("Shape of 5D propagator:")
-g.message(np.shape(prop5D))
-g.message("Dimension of 4D propagator:")
-#g.message(len(prop4D))
-g.message("Shape of 4D propagator:")
-g.message(np.shape(prop4D))
 
-# Pion correlator
-#g.message(g.slice(g.trace(prop * g.adj(prop)), 3))
+#p_plus=g(prop4D[0,:,:,:])# + g.gamma[5] * prop5D[(Ls/2)+1,:,:,:,:])
+#g.message(np.shape(prop5D.otype))
+#g.message(np.shape(prop5D[int((Ls/2)+1),:,:,:,:]))
+#g.message(g.lattice(prop5D[int((Ls/2)+1),:,:,:,:]))
+propLshm1=g.mspincolor(grid)
+#g.message("propLshm1")
+#g.message("Shape before the values are set:")
+#g.message(np.shape(propLshm1[:]))
+propLshm1[:]=prop5D[int((Ls/2)-1),:,:,:,:]
+#g.message("Shape After the values are set:")
+#g.message(np.shape(propLshm1[:]))
+#g.message(propLshm1.otype)
+p_plus=g(propLshm1 + g.gamma[5] * propLshm1)
+
+propLsh=g.lattice(prop4D)
+#g.message("propLsh")
+#g.message("Shape before the values are set:")
+#g.message(np.shape(propLsh[:]))
+propLsh[:]=prop5D[int((Ls/2)),:,:,:,:]
+#g.message("Shape After the values are set:")
+#g.message(np.shape(propLsh[:]))
+#g.message(propLsh.otype)
+p_minus=g(propLsh - g.gamma[5] * propLsh)
+
+p= g(0.5 * (p_plus + p_minus ))
+
+g.message("J5q:")
+Jq5=g.slice(g.trace(p * g.adj(p)),3)
+
+g.message(len(Jq5))
+g.message("real\t\t\timag")
+for i in range(len(Jq5)):
+    g.message(f"{Jq5[i].real}\t{Jq5[i].imag}")
+
+g.message("Pion correlator")
+pion=g.slice(g.trace(prop4D * g.adj(prop4D)), 3)
+
+g.message("real\t\t\timag")
+for i in range(len(pion)):
+    #g.message("{}\t{}".format(pion[i].real,pion[i].imag))
+    g.message(f"{pion[i].real}\t{pion[i].imag}")
