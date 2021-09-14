@@ -1,7 +1,16 @@
 import gpt as g
 import numpy as np
 
+def get_Jq5(prop5D):
+    # get all Ls slices 
+    prop4DLs=g.separate(prop5D,0)
+    # create Correlator at the midpoint of the 5-th direction
+    p_plus=g(prop4DLs[int((Ls/2)-1)] + g.gamma[5] * prop4DLs[int((Ls/2)-1)] )
+    p_minus=g(prop4DLs[int(Ls/2)] - g.gamma[5] * prop4DLs[int(Ls/2)] )
 
+    p=g(0.5 * (p_plus + p_minus))
+    # evaluate Jq5 and return it
+    return g.slice(g.trace(p * g.adj(p)),3)
 
 # Double-precision 8^4 grid
 grid = g.grid([8,8,8,16], g.double)
@@ -55,36 +64,13 @@ g.message("Nz = ",len(prop5D[0,0,0,:,0]))
 g.message("Nt = ",len(prop5D[0,0,0,0,:]))
 #
 
-#p_plus=g(prop4D[0,:,:,:])# + g.gamma[5] * prop5D[(Ls/2)+1,:,:,:,:])
-#g.message(np.shape(prop5D.otype))
-#g.message(np.shape(prop5D[int((Ls/2)+1),:,:,:,:]))
-#g.message(g.lattice(prop5D[int((Ls/2)+1),:,:,:,:]))
-propLshm1=g.mspincolor(grid)
-#g.message("propLshm1")
-#g.message("Shape before the values are set:")
-#g.message(np.shape(propLshm1[:]))
-propLshm1[:]=prop5D[int((Ls/2)-1),:,:,:,:]
-#g.message("Shape After the values are set:")
-#g.message(np.shape(propLshm1[:]))
-#g.message(propLshm1.otype)
-p_plus=g(propLshm1 + g.gamma[5] * propLshm1)
 
-propLsh=g.lattice(prop4D)
-#g.message("propLsh")
-#g.message("Shape before the values are set:")
-#g.message(np.shape(propLsh[:]))
-propLsh[:]=prop5D[int((Ls/2)),:,:,:,:]
-#g.message("Shape After the values are set:")
-#g.message(np.shape(propLsh[:]))
-#g.message(propLsh.otype)
-p_minus=g(propLsh - g.gamma[5] * propLsh)
+prop4DLs=g.separate(prop5D,0)
 
-p= g(0.5 * (p_plus + p_minus ))
 
-g.message("J5q:")
-Jq5=g.slice(g.trace(p * g.adj(p)),3)
+Jq5=get_Jq5(prop5D)
 
-g.message(len(Jq5))
+g.message("Jq5:")
 g.message("real\t\t\timag")
 for i in range(len(Jq5)):
     g.message(f"{Jq5[i].real}\t{Jq5[i].imag}")
@@ -96,3 +82,4 @@ g.message("real\t\t\timag")
 for i in range(len(pion)):
     #g.message("{}\t{}".format(pion[i].real,pion[i].imag))
     g.message(f"{pion[i].real}\t{pion[i].imag}")
+
