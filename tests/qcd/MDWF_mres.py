@@ -13,12 +13,12 @@ def get_Jq5(prop5D):
     return g.slice(g.trace(p * g.adj(p)),3)
 
 # Double-precision 8^4 grid
-Dims=np.array([8,8,8,16])
+Dims=[8,8,8,16]
 grid = g.grid(Dims, g.double)
 Ls=12
 # momentum
 k=1
-p= 2.0 * np.pi() * np.array([0,0,int(k),0])/(Dims[0])
+p= 2.0 * np.pi * np.array([0,0,int(k),0])/(Dims[0])
 # exp(ix*p)
 P=g.exp_ixp(p)
 
@@ -90,5 +90,5 @@ for i in range(len(pion)):
     g.message(f"{pion[i].real}\t{pion[i].imag}")
 
 header='t \t Jq5_real \t G5G5'
-data=np.array([len(Jq5),Jq5.real,pion.real])
-np.savetxt("./test_output",data.T,header=header)
+data=np.array([[i for i in range(len(Jq5))],[Jq5[i].real for i in range(len(Jq5))],[pion[i].real for i in range(len(pion))]])
+np.savetxt("./test_output_k{}".format(k),data.T,header=header)
