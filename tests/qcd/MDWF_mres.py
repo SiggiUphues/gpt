@@ -17,7 +17,9 @@ Dims=[8,8,8,16]
 grid = g.grid(Dims, g.double)
 Ls=12
 # momentum
-k=1
+
+#k=1
+k=g.default.get_int("-k",0)
 p= 2.0 * np.pi * np.array([0,0,int(k),0])/(Dims[0])
 # exp(ix*p)
 P=g.exp_ixp(p)
