@@ -2,7 +2,7 @@ import gpt as g
 import numpy as np
 
 def get_Jq5(prop5D):
-    # get all Ls slices 
+    # get all Ls slices
     prop4DLs=g.separate(prop5D,0)
     # create Correlator at the midpoint of the 5-th direction
     p_plus=g(prop4DLs[int((Ls/2)-1)] + g.gamma[5] * prop4DLs[int((Ls/2)-1)] )
@@ -13,8 +13,14 @@ def get_Jq5(prop5D):
     return g.slice(g.trace(p * g.adj(p)),3)
 
 # Double-precision 8^4 grid
-grid = g.grid([8,8,8,16], g.double)
+Dims=np.array([8,8,8,16])
+grid = g.grid(Dims, g.double)
 Ls=12
+# momentum
+k=1
+p= 2.0 * np.pi() * np.array([0,0,int(k),0])/(Dims[0])
+# exp(ix*p)
+P=g.exp_ixp(p)
 
 # Parallel random number generator
 #rng = g.random("seed text")
@@ -76,10 +82,9 @@ for i in range(len(Jq5)):
     g.message(f"{Jq5[i].real}\t{Jq5[i].imag}")
 
 g.message("Pion correlator")
-pion=g.slice(g.trace(prop4D * g.adj(prop4D)), 3)
+pion=g.slice(g.trace( P * prop4D * g.adj(prop4D)), 3)
 
 g.message("real\t\t\timag")
 for i in range(len(pion)):
     #g.message("{}\t{}".format(pion[i].real,pion[i].imag))
     g.message(f"{pion[i].real}\t{pion[i].imag}")
-
