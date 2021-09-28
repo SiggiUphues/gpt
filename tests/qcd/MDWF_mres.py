@@ -88,3 +88,7 @@ g.message("real\t\t\timag")
 for i in range(len(pion)):
     #g.message("{}\t{}".format(pion[i].real,pion[i].imag))
     g.message(f"{pion[i].real}\t{pion[i].imag}")
+
+header='t \t Jq5_real \t G5G5'
+data=np.array([len(Jq5),Jq5.real,pion.real])
+np.savetxt("./test_output",data.T,header=header)
