@@ -27,11 +27,11 @@ for mu in G_single[1:]:
 
 Gammas=np.append(Gammas,tmp)
 # check length
-g.message("#GAMMAS = {}".format(len(Gammas)))
+#g.message("#GAMMAS = {}".format(len(Gammas)))
 # check different combinations
-g.message("Gammas:")
-for i in Gammas:
-    g.message(i)
+#g.message("Gammas:")
+#for i in Gammas:
+#    g.message(i)
 
 # Double-precision 8^4 grid
 Dims=[8,8,8,16]
@@ -91,23 +91,22 @@ prop4D = g( exp * prop5D )
 #g.message(np.shape(prop5D[Ls-1,:,:,:,:]))
 #g.message(prop5D.otype)
 #g.message(prop4D.otype)
-g.message("Ls = ",len(prop5D[:,0,0,0,0]))
-g.message("Nx = ",len(prop5D[0,:,0,0,0]))
-g.message("Ny = ",len(prop5D[0,0,:,0,0]))
-g.message("Nz = ",len(prop5D[0,0,0,:,0]))
-g.message("Nt = ",len(prop5D[0,0,0,0,:]))
+#g.message("Ls = ",len(prop5D[:,0,0,0,0]))
+#g.message("Nx = ",len(prop5D[0,:,0,0,0]))
+#g.message("Ny = ",len(prop5D[0,0,:,0,0]))
+#g.message("Nz = ",len(prop5D[0,0,0,:,0]))
+#g.message("Nt = ",len(prop5D[0,0,0,0,:]))
 #
 
 
-prop4DLs=g.separate(prop5D,0)
 
 
 Jq5=get_Jq5(prop5D)
 
 g.message("Jq5:")
-g.message("real\t\t\timag")
-for i in range(len(Jq5)):
-    g.message(f"{Jq5[i].real}\t{Jq5[i].imag}")
+#g.message("real\t\t\timag")
+#for i in range(len(Jq5)):
+#    g.message(f"{Jq5[i].real}\t{Jq5[i].imag}")
 
 header='t\t\t\t\tJq5'
 data=np.array([[i for i in range(len(Jq5))],[Jq5[i].real for i in range(len(Jq5))]])
@@ -129,14 +128,12 @@ for comb in Gammas:
             G= G * g.gamma[ind]
         
 
-    g.message("Pion correlator")
-    #G=g.gamma[5]
     tCorr=g.slice(g.trace( P * G * prop4D * G * g.gamma[5] * g.adj(prop4D) * g.gamma[5] ), 3)
 
-    g.message("real\t\t\timag")
-    for i in range(len(tCorr)):
-        #g.message("{}\t{}".format(tCorr[i].real,tCorr[i].imag))
-        g.message(f"{tCorr[i].real}\t{tCorr[i].imag}")
+    #g.message("real\t\t\timag")
+    #for i in range(len(tCorr)):
+    #    #g.message("{}\t{}".format(tCorr[i].real,tCorr[i].imag))
+    #    g.message(f"{tCorr[i].real}\t{tCorr[i].imag}")
 
     header+='\t\t\t' + col
     data=np.append(data,[[tCorr[i].real for i in range(len(tCorr))]],axis = 0)
