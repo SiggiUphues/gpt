@@ -13,10 +13,10 @@ def get_Jq5(prop5D):
     return g.slice(g.trace(p * g.adj(p)),3)
 
 # create a string array with all wanted gamma combinations
-G_single=np.array(["5","I","X","Y","T","Z"])
+G_single=np.array(["I","5","X","Y","Z","T"])
 Gammas=np.array(G_single)
 tmp=np.array([])
-for mu in G_single[0,2:]:
+for mu in G_single[1:]:
     for nu in G_single[2:]:
         if mu == nu:
             continue
@@ -38,6 +38,11 @@ Dims=[8,8,8,16]
 grid = g.grid(Dims, g.double)
 Ls=12
 # momentum
+# additional correlator channel
+Gopt=g.default.get_single("-G",None)
+
+if Gopt:
+    Gammas=np.append(Gammas,Gopt)
 
 #k=1
 k=g.default.get_int("-k",0)
@@ -104,14 +109,36 @@ g.message("real\t\t\timag")
 for i in range(len(Jq5)):
     g.message(f"{Jq5[i].real}\t{Jq5[i].imag}")
 
-g.message("Pion correlator")
-pion=g.slice(g.trace( P * prop4D * g.adj(prop4D)), 3)
+header='t\t\t\t\tJq5'
+data=np.array([[i for i in range(len(Jq5))],[Jq5[i].real for i in range(len(Jq5))]])
 
-g.message("real\t\t\timag")
-for i in range(len(pion)):
-    #g.message("{}\t{}".format(pion[i].real,pion[i].imag))
-    g.message(f"{pion[i].real}\t{pion[i].imag}")
+for comb in Gammas:
+    GMats=comb.split('.')
+    #g.message(GMats)
+    col="G" + "G".join(GMats)    
+    g.message(col + " correlator")
+    if GMats[0] == "5":
+        G=g.gamma[5]
+    else:        
+        G=g.gamma[GMats[0]]
 
-header='t \t Jq5_real \t G5G5'
-data=np.array([[i for i in range(len(Jq5))],[Jq5[i].real for i in range(len(Jq5))],[pion[i].real for i in range(len(pion))]])
-np.savetxt("./test_output_k{}".format(k),data.T,header=header)
+    for ind in GMats[1:]:
+        if ind == "5":
+            G = G * g.gamma[5]
+        else:
+            G= G * g.gamma[ind]
+        
+
+    g.message("Pion correlator")
+    #G=g.gamma[5]
+    tCorr=g.slice(g.trace( P * G * prop4D * G * g.gamma[5] * g.adj(prop4D) * g.gamma[5] ), 3)
+
+    g.message("real\t\t\timag")
+    for i in range(len(tCorr)):
+        #g.message("{}\t{}".format(tCorr[i].real,tCorr[i].imag))
+        g.message(f"{tCorr[i].real}\t{tCorr[i].imag}")
+
+    header+='\t\t\t' + col
+    data=np.append(data,[[tCorr[i].real for i in range(len(tCorr))]],axis = 0)
+
+np.savetxt("./test_output_kz{}".format(k),data.T,header=header,delimiter="\t",comments='#')
