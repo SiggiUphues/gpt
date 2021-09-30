@@ -12,6 +12,27 @@ def get_Jq5(prop5D):
     # evaluate Jq5 and return it
     return g.slice(g.trace(p * g.adj(p)),3)
 
+# create a string array with all wanted gamma combinations
+G_single=np.array(["5","I","X","Y","T","Z"])
+Gammas=np.array(G_single)
+tmp=np.array([])
+for mu in G_single[0,2:]:
+    for nu in G_single[2:]:
+        if mu == nu:
+            continue
+        else:
+            Gammas=np.append(Gammas,"{}.{}".format(mu,nu))
+            if mu != "5":
+                tmp=np.append(tmp,"5.{}.{}".format(mu,nu))
+
+Gammas=np.append(Gammas,tmp)
+# check length
+g.message("#GAMMAS = {}".format(len(Gammas)))
+# check different combinations
+g.message("Gammas:")
+for i in Gammas:
+    g.message(i)
+
 # Double-precision 8^4 grid
 Dims=[8,8,8,16]
 grid = g.grid(Dims, g.double)
