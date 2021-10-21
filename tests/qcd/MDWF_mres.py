@@ -2,7 +2,7 @@ import gpt as g
 import numpy as np
 
 def get_vec(tag,type, default, ndim):
-    res = g.get_all(tag, None)
+    res = g.default.get_all(tag, None)
     if res[0] is None:
         return default
     if type == "s":
@@ -55,25 +55,25 @@ Gammas=np.append(Gammas,tmp)
 #    g.message(i)
 # command line options
 # Ls,M5,b5,c5,out_folder,out_name,conf_name,ms,ml,--grid,momentum,additional corr-channel
-Dims=g.get_vec("--grid","i",[8,8,8,8],4)
-Ls=g.get_int("-Ls",12)
-M5=g.get_float("-M5",1.8)
-b5=g.get_float("-b5",1.5)
-c5=g.get_float("-c5",0.5)
-nflav=g.get_int("-nflav",2)
-flav_names=g.get_vec("-flav-name","s",["l","s"],nflav)
-flav_masses=g.get_vec("-flav-masses","f",[0.01,0.1],nflav)
+Dims=get_vec("--grid","i",[8,8,8,8],4)
+Ls=g.default.get_int("-Ls",12)
+M5=g.default.get_float("-M5",1.8)
+b5=g.default.get_float("-b5",1.5)
+c5=g.default.get_float("-c5",0.5)
+nflavs=g.default.get_int("-nflavs",2)
+flav_names=get_vec("-flav-name","s",["l","s"],nflavs)
+flav_masses=get_vec("-flav-masses","f",[0.01,0.1],nflavs)
 assert len(flav_names) == len(flav_masses), "-flav_names and -flav_masses must have the same length"
 assert len(flav_names) == nflavs, "-nflavs specifies the number of flavors and is not equal to the number of "
 
-resid=g.get_float("-resid",1e-8)
-max_it=g.get_int("-max-it",1000)
-conf_name=g.get_single("-conf-name","unit")
-out_name_add=g.get_single("-out-name-add","")
-out_folder=g.get_single("-out-folder",".")
+resid=g.default.get_float("-resid",1e-8)
+max_it=g.default.get_int("-max-it",1000)
+conf_name=g.default.get_single("-conf-name","unit")
+out_name_add=g.default.get_single("-out-name-add","")
+out_folder=g.default.get_single("-out-folder",".")
 # momentum
 #k=1
-k=np.array(g.get_vec("-k","i",[0,0,0,0],4))
+k=np.array(get_vec("-k","i",[0,0,0,0],4))
 k=k.astype(int)
 p= 2.0 * np.pi * np.array(k/(Dims[0]))
 # additional correlator channel
@@ -106,7 +106,7 @@ inv = g.algorithms.inverter
 pc = g.qcd.fermion.preconditioner
 
 # Even-odd-preconditioned CG solver
-slv_5d = inv.preconditioned(pc.eo2_ne(), inv.cg(eps = 1e-8, maxiter = 1000))
+slv_5d = inv.preconditioned(pc.eo2_ne(), inv.cg(eps = resid, maxiter = max_it))
 
 # Define expressions for fermions
 for i in range(len(flav_names)):
@@ -122,10 +122,10 @@ for i in range(len(flav_names)):
     # Solve propagator on 12 spin-color components
 
     g.message("Calculate 5D propagator for flavor {f} with m = {m}".format(
-              f=flav_names[i],flav_masses[i]))
+              f=flav_names[i],m=flav_masses[i]))
     prop5D = g( D5_inv * src5D )
     g.message("Extract 4D from 5D propagator for flavor {f} with m = {m}".format(
-              f=flav_names[i],flav_masses[i]))
+              f=flav_names[i],m=flav_masses[i]))
     exec("prop4D_{f} = g( exp * prop5D )".format(f=flav_names[i]))
     exec("Jq5_{f}=get_Jq5(prop5D)".format(f=flav_names[i]))
 
@@ -143,11 +143,14 @@ for i in range(len(flav_names)):
 #contraction
 for i in range(len(flav_names)):
     for j in range(i,len(flav_names)):
+        header=""
         #g.message("Jq5:")
         #g.message("real\t\t\timag")
         #for i in range(len(Jq5)):
         #    g.message(f"{Jq5[i].real}\t{Jq5[i].imag}")
+        print(flav_names[i],flav_names[j])
         if flav_names[i] == flav_names[j]:
+            print("inside if")
             header='t\t\t\t\tJq5'
             exec("data=np.array([[t for t in range(len(Jq5_{f}))],\
                  [Jq5_{f}[t].real for t in range(len(Jq5_{f}))]])".format(f=flav_names[i]))
@@ -182,6 +185,6 @@ for i in range(len(flav_names)):
             data=np.append(data,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
 
         np.savetxt("./test_pt_{f1}{f2}_k{mom}".format(f1=flav_names[i],
-                  flav_names[j],
+                  f2=flav_names[j],
                   mom="".join(str(elem) for elem in k)),
                   data.T,header=header,delimiter="\t",comments='#')
