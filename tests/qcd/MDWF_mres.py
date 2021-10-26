@@ -61,7 +61,7 @@ M5=g.default.get_float("-M5",1.8)
 b5=g.default.get_float("-b5",1.5)
 c5=g.default.get_float("-c5",0.5)
 nflavs=g.default.get_int("-nflavs",2)
-flav_names=get_vec("-flav-name","s",["l","s"],nflavs)
+flav_names=get_vec("-flav-names","s",["l","s"],nflavs)
 flav_masses=get_vec("-flav-masses","f",[0.01,0.1],nflavs)
 assert len(flav_names) == len(flav_masses), "-flav_names and -flav_masses must have the same length"
 assert len(flav_names) == nflavs, "-nflavs specifies the number of flavors and is not equal to the number of "
