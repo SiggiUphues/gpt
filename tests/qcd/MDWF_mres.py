@@ -49,7 +49,7 @@ for mu in G_single[1:]:
 Gammas=np.append(Gammas,tmp)
 # check length
 #g.message("#GAMMAS = {}".format(len(Gammas)))
-# check different combinations
+# check different combinationsd
 #g.message("Gammas:")
 #for i in Gammas:
 #    g.message(i)
@@ -69,7 +69,7 @@ assert len(flav_names) == nflavs, "-nflavs specifies the number of flavors and i
 resid=g.default.get_float("-resid",1e-8)
 max_it=g.default.get_int("-max-it",1000)
 conf_name=g.default.get_single("-conf-name","unit")
-out_name_add=g.default.get_single("-out-name-add","")
+out_name_add=g.default.get_single("-out-name-add","res")
 out_folder=g.default.get_single("-out-folder",".")
 # momentum
 #k=1
@@ -123,10 +123,21 @@ for i in range(len(flav_names)):
 
     g.message("Calculate 5D propagator for flavor {f} with m = {m}".format(
               f=flav_names[i],m=flav_masses[i]))
+    t0=g.time()
     prop5D = g( D5_inv * src5D )
+    t1=g.time()
+    g.message("")
+    g.message("Time needed for the 12 inversions %g sec" % ((t1 - t0)))
+    g.message("")
+
     g.message("Extract 4D from 5D propagator for flavor {f} with m = {m}".format(
               f=flav_names[i],m=flav_masses[i]))
+    t0 = g.time()
     exec("prop4D_{f} = g( exp * prop5D )".format(f=flav_names[i]))
+    t1 = g.time()
+    g.message("")
+    g.message("Time needed to extract the 4D from the 5D propagator: {} sec".format((t1-t0)))
+    g.message("")
     exec("Jq5_{f}=get_Jq5(prop5D)".format(f=flav_names[i]))
 
 #
@@ -141,6 +152,7 @@ for i in range(len(flav_names)):
 #
 
 #contraction
+t0 = g.time()
 for i in range(len(flav_names)):
     for j in range(i,len(flav_names)):
         header=""
@@ -184,7 +196,23 @@ for i in range(len(flav_names)):
             header+='\t\t\t' + col
             data=np.append(data,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
 
-        np.savetxt("./test_pt_{f1}{f2}_k{mom}".format(f1=flav_names[i],
+        np.savetxt("{out_folder}/{out_name_add}_pt_{f1}{f2}_ms{ms}ml{ml}Ls{Ls}b{b5}c{c5}M{M5}k{mom}\
+_{conf_name}.txt".format(out_folder=out_folder,
+                  out_name_add=out_name_add,
+                  f1=flav_names[i],
                   f2=flav_names[j],
-                  mom="".join(str(elem) for elem in k)),
+                  ml=str(flav_masses[0])[2:],
+                  ms=str(flav_masses[1])[2:],
+                  Ls=Ls,
+                  b5=str(b5)[0]+str(b5)[2:],
+                  c5=str(c5)[0]+str(c5)[2:],
+                  M5=str(M5)[0]+str(M5)[2:],
+                  mom="".join(str(elem) for elem in k),
+                  conf_name=conf_name),
                   data.T,header=header,delimiter="\t",comments='#')
+t1 = g.time()
+g.message("")
+g.message("All contractions were done in: {} sec".format((t1-t0)))
+g.message("")
+g.message("Total runtime: {} sec".format(g.time()))
+g.message("")
