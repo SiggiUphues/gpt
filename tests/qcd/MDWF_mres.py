@@ -133,13 +133,17 @@ for i in range(len(flav_names)):
     g.message("Extract 4D from 5D propagator for flavor {f} with m = {m}".format(
               f=flav_names[i],m=flav_masses[i]))
     t0 = g.time()
+    g.mem_report()
     exec("prop4D_{f} = g( exp * prop5D )".format(f=flav_names[i]))
     t1 = g.time()
+    g.mem_report()
     g.message("")
     g.message("Time needed to extract the 4D from the 5D propagator: {} sec".format((t1-t0)))
     g.message("")
     exec("Jq5_{f}=get_Jq5(prop5D)".format(f=flav_names[i]))
-
+    # delete 5D prop since only 4D prop is needed for the meson correlators
+    del prop5D
+    g.mem_report()
 #
 #g.message(np.shape(prop5D[Ls-1,:,:,:,:]))
 #g.message(prop5D.otype)
