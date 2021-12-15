@@ -69,12 +69,16 @@ assert len(flav_names) == nflavs, "-nflavs specifies the number of flavors and i
 resid=g.default.get_float("-resid",1e-8)
 max_it=g.default.get_int("-max-it",1000)
 conf_name=g.default.get_single("-conf-name","unit")
-out_name_add=g.default.get_single("-out-name-add","res")
+out_name_add=g.default.get_single("-out-name-add","corrgpt")
 out_folder=g.default.get_single("-out-folder",".")
 # momentum
 #k=1
 k=np.array(get_vec("-k","i",[0,0,0,0],4))
 k=k.astype(int)
+if np.sum(k > 0) != 0:
+    mom_str="k" + "".join(str(elem) for elem in k)
+else:
+    mom_str=""
 p= 2.0 * np.pi * np.array(k/(Dims[0]))
 # additional correlator channel
 Gopt=g.default.get_single("-G",None)
@@ -121,7 +125,7 @@ for i in range(len(flav_names)):
     src5D =  g(imp * src4D)
     # Solve propagator on 12 spin-color components
 
-    g.message("Calculate 5D propagator for flavor {f} with m = {m}".format(
+    g.message("Calculate 5D propagator for flavor {f} with m{f} = {m}".format(
               f=flav_names[i],m=flav_masses[i]))
     t0=g.time()
     prop5D = g( D5_inv * src5D )
@@ -170,7 +174,13 @@ for i in range(len(flav_names)):
             header='t\t\t\t\tJq5'
             exec("data=np.array([[t for t in range(len(Jq5_{f}))],\
                  [Jq5_{f}[t].real for t in range(len(Jq5_{f}))]])".format(f=flav_names[i]))
-
+            out_name="{out_name_add}_pt_{f}{f}_m{f}{m}".format(f=flav_names[i],m=str(flav_masses[0])[2:])
+        else:
+            out_name="{out_name_add}_pt_{f1}{f2}_m{f1}{m1}m{f2}{m2}".format(
+            f1=flav_names[i],
+            f2=flav_names[j],
+            m1=str(flav_masses[i])[2:],
+            m2=str(flav_masses[j])[2:])
         for comb in Gammas:
             GMats=comb.split('.')
             #g.message(GMats)
@@ -200,18 +210,14 @@ for i in range(len(flav_names)):
             header+='\t\t\t' + col
             data=np.append(data,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
 
-        np.savetxt("{out_folder}/{out_name_add}_pt_{f1}{f2}_ms{ms}ml{ml}Ls{Ls}b{b5}c{c5}M{M5}k{mom}\
+        np.savetxt("{out_folder}/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
 _{conf_name}.txt".format(out_folder=out_folder,
-                  out_name_add=out_name_add,
-                  f1=flav_names[i],
-                  f2=flav_names[j],
-                  ml=str(flav_masses[0])[2:],
-                  ms=str(flav_masses[1])[2:],
+                  out_name=out_name,
                   Ls=Ls,
                   b5=str(b5)[0]+str(b5)[2:],
                   c5=str(c5)[0]+str(c5)[2:],
                   M5=str(M5)[0]+str(M5)[2:],
-                  mom="".join(str(elem) for elem in k),
+                  mom=mom_str,
                   conf_name=conf_name),
                   data.T,header=header,delimiter="\t",comments='#')
 t1 = g.time()
