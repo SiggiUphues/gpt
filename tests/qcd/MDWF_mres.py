@@ -174,9 +174,13 @@ for i in range(len(flav_names)):
             header='t\t\t\t\tJq5'
             exec("data=np.array([[t for t in range(len(Jq5_{f}))],\
                  [Jq5_{f}[t].real for t in range(len(Jq5_{f}))]])".format(f=flav_names[i]))
-            out_name="{out_name_add}_pt_{f}{f}_m{f}{m}".format(f=flav_names[i],m=str(flav_masses[0])[2:])
+            out_name="{out_name_add}_pt_{f}{f}_m{f}{m}".format(
+           out_name_add=out_name_add,
+           f=flav_names[i],
+           m=str(flav_masses[i])[2:])
         else:
             out_name="{out_name_add}_pt_{f1}{f2}_m{f1}{m1}m{f2}{m2}".format(
+            out_name_add=out_name_add,
             f1=flav_names[i],
             f2=flav_names[j],
             m1=str(flav_masses[i])[2:],
