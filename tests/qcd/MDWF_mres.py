@@ -22,6 +22,14 @@ def get_vec(tag,type, default, ndim):
                 return v
     return default
 
+def get_bool(tag,default = False):
+    assert type(default) == bool, "The default value has to be a boolean"
+    res = default
+    for i, x in enumerate(sys.argv):
+        if x == tag:
+            res = not default
+    return res
+
 def get_Jq5(prop5D):
     # get all Ls slices
     prop4DLs=g.separate(prop5D,0)
@@ -71,15 +79,32 @@ max_it=g.default.get_int("-max-it",1000)
 conf_name=g.default.get_single("-conf-name","unit")
 out_name_add=g.default.get_single("-out-name-add","corrgpt")
 out_folder=g.default.get_single("-out-folder",".")
-# momentum
-#k=1
-k=np.array(get_vec("-k","i",[0,0,0,0],4))
-k=k.astype(int)
-if np.sum(k > 0) != 0:
-    mom_str="k" + "".join(str(elem) for elem in k)
+tdir=get_bool("-tdir")
+sdir=get_bool("-sdir")
+# momentum for temporal correlator [kx,ky,kz]
+kt=np.array(get_vec("-kt","i",[0,0,0],3))
+kt=kt.astype(int)
+if np.sum(kt > 0) != 0:
+    momt_str="kt" + "".join(str(elem) for elem in kt)
 else:
-    mom_str=""
-p= 2.0 * np.pi * np.array(k/(Dims[0]))
+    momt_str=""
+
+pt= 2.0 * np.pi * np.array(kt/(Dims[0]))
+# exp(ix*pt)
+Pt=g.exp_ixp(pt)
+
+# momentum for spatial correlator [kx,ky,kt]
+ks=np.array(get_vec("-ks","i",[0,0,0],3))
+ks=ks.astype(int)
+if np.sum(ks > 0) != 0:
+    moms_str="ks" + "".join(str(elem) for elem in ks)
+else:
+    moms_str=""
+
+ps= 2.0 * np.pi * np.hstack(ks[0:2]/(Dims[0]),0,ks[2]/(Dims[3]))
+# exp(ix_funny*ps_funny) x_funny * ps_funny = x*px + y*py + t*pt
+Ps=g.exp_ixp(ps)
+
 # additional correlator channel
 Gopt=g.default.get_single("-G",None)
 if Gopt:
@@ -89,8 +114,7 @@ if Gopt:
 #Dims=[8,8,8,16]
 grid = g.grid(Dims, g.double)
 
-# exp(ix*p)
-P=g.exp_ixp(p)
+
 
 # Parallel random number generator
 #rng = g.random("seed text")
@@ -163,24 +187,42 @@ for i in range(len(flav_names)):
 t0 = g.time()
 for i in range(len(flav_names)):
     for j in range(i,len(flav_names)):
-        header=""
+        theader=""
+        sheader=""
+        tdata=np.array([])
+        sdata=np.array([])
         #g.message("Jq5:")
         #g.message("real\t\t\timag")
         #for i in range(len(Jq5)):
         #    g.message(f"{Jq5[i].real}\t{Jq5[i].imag}")
         print(flav_names[i],flav_names[j])
+        if(tdir):
+            theader='t\t'
+            tdata=np.array([[t for t in range(Dims[3])]])
+        if(sdir):
+            sheader='z\t'
+            sdata=np.array([[z for z in range(Dims[2])]])
         if flav_names[i] == flav_names[j]:
             print("inside if")
-            header='t\t\t\t\tJq5'
-            exec("data=np.array([[t for t in range(len(Jq5_{f}))],\
-                 [Jq5_{f}[t].real for t in range(len(Jq5_{f}))]])".format(f=flav_names[i]))
-            out_name="{out_name_add}_pt_{f}{f}_m{f}{m}".format(f=flav_names[i],m=str(flav_masses[0])[2:])
+            if(tdir):
+                theader='\t\t\tJq5'
+                exec("tdata=np.append(tdata,\
+                 [[Jq5_{f}[t].real for t in range(len(Jq5_{f}))]], axis = 0)".format(f=flav_names[i]))
+
+            out_namet="{out_name_add}_pt_t_{f}{f}_m{f}{m}".format(f=flav_names[i],m=str(flav_masses[0])[2:])
+            out_names="{out_name_add}_pt_s_{f}{f}_m{f}{m}".format(f=flav_names[i],m=str(flav_masses[0])[2:])
         else:
-            out_name="{out_name_add}_pt_{f1}{f2}_m{f1}{m1}m{f2}{m2}".format(
+            out_namet="{out_name_add}_pt_t_{f1}{f2}_m{f1}{m1}m{f2}{m2}".format(
             f1=flav_names[i],
             f2=flav_names[j],
             m1=str(flav_masses[i])[2:],
             m2=str(flav_masses[j])[2:])
+            out_names="{out_name_add}_pt_s_{f1}{f2}_m{f1}{m1}m{f2}{m2}".format(
+            f1=flav_names[i],
+            f2=flav_names[j],
+            m1=str(flav_masses[i])[2:],
+            m2=str(flav_masses[j])[2:])
+
         for comb in Gammas:
             GMats=comb.split('.')
             #g.message(GMats)
@@ -197,29 +239,47 @@ for i in range(len(flav_names)):
                 else:
                     G= G * g.gamma[ind]
 
+            if(tdir):
+                exec("tCorr=g.slice(g.trace( Pt * G * prop4D_{f1} * G * g.gamma[5] *\
+                      prop4D_{f2} * g.gamma[5] ), 3)".format(f1=flav_names[i],
+                                                             f2=flav_names[j]))
+                theader+='\t\t\t' + col
+                tdata=np.append(tdata,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
 
-            exec("tCorr=g.slice(g.trace( P * G * prop4D_{f1} * G * g.gamma[5] *\
-                  prop4D_{f2} * g.gamma[5] ), 3)".format(f1=flav_names[i],
-                                                         f2=flav_names[j]))
+            if(sdir):
+                exec("sCorr=g.slice(g.trace( Ps * G * prop4D_{f1} * G * g.gamma[5] *\
+                      prop4D_{f2} * g.gamma[5] ), 2)".format(f1=flav_names[i],
+                                                             f2=flav_names[j]))
+                sheader+='\t\t\t' + col
+                sdata=np.append(sdata,[[sCorr[s].real for s in range(len(sCorr))]],axis = 0)
 
             #g.message("real\t\t\timag")
             #for i in range(len(tCorr)):
             #    #g.message("{}\t{}".format(tCorr[i].real,tCorr[i].imag))
             #    g.message(f"{tCorr[i].real}\t{tCorr[i].imag}")
 
-            header+='\t\t\t' + col
-            data=np.append(data,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
-
-        np.savetxt("{out_folder}/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
+        if(tdir):
+            np.savetxt("{out_folder}/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
 _{conf_name}.txt".format(out_folder=out_folder,
-                  out_name=out_name,
+                  out_name=out_namet,
                   Ls=Ls,
                   b5=str(b5)[0]+str(b5)[2:],
                   c5=str(c5)[0]+str(c5)[2:],
                   M5=str(M5)[0]+str(M5)[2:],
-                  mom=mom_str,
+                  mom=momt_str,
                   conf_name=conf_name),
-                  data.T,header=header,delimiter="\t",comments='#')
+                  tdata.T,header=theader,delimiter="\t",comments='#')
+        if(sdir):
+            np.savetxt("{out_folder}/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
+_{conf_name}.txt".format(out_folder=out_folder,
+                  out_name=out_names,
+                  Ls=Ls,
+                  b5=str(b5)[0]+str(b5)[2:],
+                  c5=str(c5)[0]+str(c5)[2:],
+                  M5=str(M5)[0]+str(M5)[2:],
+                  mom=moms_str,
+                  conf_name=conf_name),
+                  sdata.T,header=sheader,delimiter="\t",comments='#')
 t1 = g.time()
 g.message("")
 g.message("All contractions were done in: {} sec".format((t1-t0)))
