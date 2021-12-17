@@ -123,6 +123,7 @@ grid = g.grid(Dims, g.double)
 # Random gauge field
 if conf_name == "unit":
     U = g.qcd.gauge.unit(grid)
+    conf_name = "unit" + "{Ns}{Nt}".format(Ns = Dims[0],Nt = Dims[3])
 else:
     U = g.load(conf_name)
 
