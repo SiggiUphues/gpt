@@ -211,16 +211,16 @@ for i in range(len(flav_names)):
                 exec("tdata=np.append(tdata,\
                  [[Jq5_{f}[t].real for t in range(len(Jq5_{f}))]], axis = 0)".format(f=flav_names[i]))
 
-            out_namet="{out_name_add}_pt_t_{f}{f}_m{f}{m}".format(out_name_add=out_name_add,f=flav_names[i],m=str(flav_masses[i])[2:])
-            out_names="{out_name_add}_pt_s_{f}{f}_m{f}{m}".format(out_name_add=out_name_add,f=flav_names[i],m=str(flav_masses[i])[2:])
+            out_namet="{out_name_add}_pt_{f}{f}_t_m{f}{m}".format(out_name_add=out_name_add,f=flav_names[i],m=str(flav_masses[i])[2:])
+            out_names="{out_name_add}_pt_{f}{f}_s_m{f}{m}".format(out_name_add=out_name_add,f=flav_names[i],m=str(flav_masses[i])[2:])
         else:
-            out_namet="{out_name_add}_pt_t_{f1}{f2}_m{f1}{m1}m{f2}{m2}".format(
+            out_namet="{out_name_add}_pt_{f1}{f2}_t_m{f1}{m1}m{f2}{m2}".format(
             out_name_add=out_name_add,
             f1=flav_names[i],
             f2=flav_names[j],
             m1=str(flav_masses[i])[2:],
             m2=str(flav_masses[j])[2:])
-            out_names="{out_name_add}_pt_s_{f1}{f2}_m{f1}{m1}m{f2}{m2}".format(
+            out_names="{out_name_add}_pt_{f1}{f2}_s_m{f1}{m1}m{f2}{m2}".format(
             out_name_add=out_name_add,
             f1=flav_names[i],
             f2=flav_names[j],
