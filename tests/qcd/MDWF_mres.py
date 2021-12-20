@@ -1,6 +1,7 @@
 import gpt as g
 import numpy as np
 import sys
+import os
 
 def get_vec(tag,type, default, ndim):
     res = g.default.get_all(tag, None)
@@ -163,17 +164,17 @@ for i in range(len(flav_names)):
     g.message("Extract 4D from 5D propagator for flavor {f} with m = {m}".format(
               f=flav_names[i],m=flav_masses[i]))
     t0 = g.time()
-    g.mem_report()
+    #g.mem_report()
     exec("prop4D_{f} = g( exp * prop5D )".format(f=flav_names[i]))
     t1 = g.time()
-    g.mem_report()
+    #g.mem_report()
     g.message("")
     g.message("Time needed to extract the 4D from the 5D propagator: {} sec".format((t1-t0)))
     g.message("")
     exec("Jq5_{f}=get_Jq5(prop5D)".format(f=flav_names[i]))
     # delete 5D prop since only 4D prop is needed for the meson correlators
     del prop5D
-    g.mem_report()
+    #g.mem_report()
 #
 #g.message(np.shape(prop5D[Ls-1,:,:,:,:]))
 #g.message(prop5D.otype)
@@ -197,7 +198,7 @@ for i in range(len(flav_names)):
         #g.message("real\t\t\timag")
         #for i in range(len(Jq5)):
         #    g.message(f"{Jq5[i].real}\t{Jq5[i].imag}")
-        print(flav_names[i],flav_names[j])
+        #print(flav_names[i],flav_names[j])
         if(tdir):
             theader='t\t'
             tdata=np.array([[int(t) for t in range(Dims[3])]])
@@ -205,7 +206,7 @@ for i in range(len(flav_names)):
             sheader='z\t'
             sdata=np.array([[int(z) for z in range(Dims[2])]])
         if flav_names[i] == flav_names[j]:
-            print("inside if")
+            #print("inside if")
             if(tdir):
                 theader+='\t\t\tJq5'
                 exec("tdata=np.append(tdata,\
@@ -231,7 +232,7 @@ for i in range(len(flav_names)):
             GMats=comb.split('.')
             #g.message(GMats)
             col="G" + "G".join(GMats)
-            g.message(col + " correlator")
+            #g.message(col + " correlator")
             if GMats[0] == "5":
                 G=g.gamma[5]
             else:
@@ -263,7 +264,8 @@ for i in range(len(flav_names)):
             #    g.message(f"{tCorr[i].real}\t{tCorr[i].imag}")
 
         if(tdir):
-            np.savetxt("{out_folder}/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
+            os.makedirs(out_folder + "/tmesons",exist_ok=True)
+            np.savetxt("{out_folder}/tmesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
 _{conf_name}.txt".format(out_folder=out_folder,
                   out_name=out_namet,
                   Ls=Ls,
@@ -274,7 +276,8 @@ _{conf_name}.txt".format(out_folder=out_folder,
                   conf_name=conf_name),
                   tdata.T,header=theader,delimiter="\t",comments='#')
         if(sdir):
-            np.savetxt("{out_folder}/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
+            os.makedirs(out_folder + "/smesons",exist_ok=True)
+            np.savetxt("{out_folder}/smesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
 _{conf_name}.txt".format(out_folder=out_folder,
                   out_name=out_names,
                   Ls=Ls,
