@@ -12,16 +12,22 @@ def get_vec(tag,type, default, ndim):
             v = [y for y in x.split(".")]
             if len(v) == ndim:
                 return v
+            else:
+                raise ValueError("len({tag}) != {ndim}".format(tag=tag,ndim=ndim))
     if type == "f":
         for x in res:
             v = [float(y) for y in x.split(",")]
             if len(v) == ndim:
                 return v
+            else:
+                raise ValueError("len({tag}) != {ndim}".format(tag=tag,ndim=ndim))
     if type == "i":
         for x in res:
             v = [int(y) for y in x.split(".")]
             if len(v) == ndim:
                 return v
+            else:
+                raise ValueError("len({tag}) != {ndim}".format(tag=tag,ndim=ndim))
     return default
 
 def get_bool(tag,default = False):
