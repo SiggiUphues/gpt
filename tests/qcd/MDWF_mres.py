@@ -230,7 +230,7 @@ for i in range(len(flav_names)):
                        m2=str(flav_masses[j])[2:])
 
         if(tdir):
-            g.message("Do contraction in temporal direction")
+            g.message("Do contraction in temporal direction for {out_name}".format(out_name=out_namet))
             for kt in kt_array:
                 # cast tuple to np.array for operations
                 kt = np.array(kt)
@@ -282,7 +282,7 @@ _{conf_name}.txt".format(out_folder=out_folder,
                          conf_name=conf_name),
                          tdata.T,header=theader,delimiter="\t",comments='#')
         if(sdir):
-            g.message("Do contraction in spatial direction")
+            g.message("Do contraction in spatial direction for {out_name}".format(out_name=out_names))
             for ks in ks_array:
                 # cast tuple to np.array for operations
                 ks = np.array(ks)
@@ -291,6 +291,8 @@ _{conf_name}.txt".format(out_folder=out_folder,
                 else:
                     moms_str=""
 
+                g.message(ks)
+                g.message(moms_str)
                 ps= 2.0 * np.pi * np.hstack((ks[0:2]/(Dims[0]),0,ks[2]/(Dims[3])))
                 # exp(ix_funny*ps_funny) x_funny * ps_funny = x*px + y*py + t*pt
                 Ps=g.exp_ixp(ps)
