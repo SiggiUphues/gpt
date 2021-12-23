@@ -102,26 +102,21 @@ kt_x=np.arrange(kt_lowbound[0],kt_upbound[0]+1)
 kt_y=np.arrange(kt_lowbound[1],kt_upbound[1]+1)
 kt_z=np.arrange(kt_lowbound[2],kt_upbound[2]+1)
 kt_array=list(itertools.product(kt_x,kt_y,kt_z)
-if np.sum(kt > 0) != 0:
-    momt_str="kt" + "".join(str(elem) for elem in kt)
-else:
-    momt_str=""
 
-pt= 2.0 * np.pi * np.hstack((kt/(Dims[0]),0))
-# exp(ix*pt)
-Pt=g.exp_ixp(pt)
+# upper and lower bound for the momenta of the spatial correlator
+# If lower bound is [0,0,0] and the upper bound [2,2,2] the program will
+# calculate all spatial correlators with momenta:
+# [0,0,0],[0,0,1],[0,0,2],[0,1,0], ... , [2,2,1], [2,2,2]
+ks_upbound=np.array(get_vec("-ks_upbound","i",[0,0,0],3))
+ks_upbound=ks_upbound.astype(int)
+ks_lowbound=np.array(get_vec("-ks_upbound","i",[0,0,0],3))
+ks_lowbound=ks_upbound.astype(int)
+ks_x=np.arrange(ks_lowbound[0],ks_upbound[0]+1)
+ks_y=np.arrange(ks_lowbound[1],ks_upbound[1]+1)
+ks_t=np.arrange(ks_lowbound[2],ks_upbound[2]+1)
+ks_array=list(itertools.product(ks_x,ks_y,ks_t)
 
-# momentum for spatial correlator [kx,ky,kt]
-ks=np.array(get_vec("-ks","i",[0,0,0],3))
-ks=ks.astype(int)
-if np.sum(ks > 0) != 0:
-    moms_str="ks" + "".join(str(elem) for elem in ks)
-else:
-    moms_str=""
 
-ps= 2.0 * np.pi * np.hstack((ks[0:2]/(Dims[0]),0,ks[2]/(Dims[3])))
-# exp(ix_funny*ps_funny) x_funny * ps_funny = x*px + y*py + t*pt
-Ps=g.exp_ixp(ps)
 
 # additional correlator channel
 Gopt=g.default.get_single("-G",None)
@@ -191,16 +186,6 @@ for i in range(len(flav_names)):
     # delete 5D prop since only 4D prop is needed for the meson correlators
     del prop5D
     #g.mem_report()
-#
-#g.message(np.shape(prop5D[Ls-1,:,:,:,:]))
-#g.message(prop5D.otype)
-#g.message(prop4D.otype)
-#g.message("Ls = ",len(prop5D[:,0,0,0,0]))
-#g.message("Nx = ",len(prop5D[0,:,0,0,0]))
-#g.message("Ny = ",len(prop5D[0,0,:,0,0]))
-#g.message("Nz = ",len(prop5D[0,0,0,:,0]))
-#g.message("Nt = ",len(prop5D[0,0,0,0,:]))
-#
 
 #contraction
 t0 = g.time()
@@ -232,77 +217,114 @@ for i in range(len(flav_names)):
             out_names="{out_name_add}_pt_{f}{f}_s_m{f}{m}".format(out_name_add=out_name_add,f=flav_names[i],m=str(flav_masses[i])[2:])
         else:
             out_namet="{out_name_add}_pt_{f1}{f2}_t_m{f1}{m1}m{f2}{m2}".format(
-            out_name_add=out_name_add,
-            f1=flav_names[i],
-            f2=flav_names[j],
-            m1=str(flav_masses[i])[2:],
-            m2=str(flav_masses[j])[2:])
+                       out_name_add=out_name_add,
+                       f1=flav_names[i],
+                       f2=flav_names[j],
+                       m1=str(flav_masses[i])[2:],
+                       m2=str(flav_masses[j])[2:])
             out_names="{out_name_add}_pt_{f1}{f2}_s_m{f1}{m1}m{f2}{m2}".format(
-            out_name_add=out_name_add,
-            f1=flav_names[i],
-            f2=flav_names[j],
-            m1=str(flav_masses[i])[2:],
-            m2=str(flav_masses[j])[2:])
-
-        for comb in Gammas:
-            GMats=comb.split('.')
-            #g.message(GMats)
-            col="G" + "G".join(GMats)
-            #g.message(col + " correlator")
-            if GMats[0] == "5":
-                G=g.gamma[5]
-            else:
-                G=g.gamma[GMats[0]]
-
-            for ind in GMats[1:]:
-                if ind == "5":
-                    G = G * g.gamma[5]
-                else:
-                    G= G * g.gamma[ind]
-
-            if(tdir):
-                exec("tCorr=g.slice(g.trace( Pt * G * prop4D_{f1} * G * g.gamma[5] *\
-                      prop4D_{f2} * g.gamma[5] ), 3)".format(f1=flav_names[i],
-                                                             f2=flav_names[j]))
-                theader+='\t\t\t' + col
-                tdata=np.append(tdata,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
-
-            if(sdir):
-                exec("sCorr=g.slice(g.trace( Ps * G * prop4D_{f1} * G * g.gamma[5] *\
-                      prop4D_{f2} * g.gamma[5] ), 2)".format(f1=flav_names[i],
-                                                             f2=flav_names[j]))
-                sheader+='\t\t\t' + col
-                sdata=np.append(sdata,[[sCorr[s].real for s in range(len(sCorr))]],axis = 0)
-
-            #g.message("real\t\t\timag")
-            #for i in range(len(tCorr)):
-            #    #g.message("{}\t{}".format(tCorr[i].real,tCorr[i].imag))
-            #    g.message(f"{tCorr[i].real}\t{tCorr[i].imag}")
+                       out_name_add=out_name_add,
+                       f1=flav_names[i],
+                       f2=flav_names[j],
+                       m1=str(flav_masses[i])[2:],
+                       m2=str(flav_masses[j])[2:])
 
         if(tdir):
-            os.makedirs(out_folder + "/tmesons",exist_ok=True)
-            np.savetxt("{out_folder}/tmesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
+            g.message("Do contraction in temporal direction")
+            for kt in kt_array:
+                if np.sum(kt > 0) != 0:
+                    momt_str="kt" + "".join(str(elem) for elem in kt)
+                else:
+                    momt_str=""
+
+                pt= 2.0 * np.pi * np.hstack((kt/(Dims[0]),0))
+                # exp(ix*pt)
+                Pt=g.exp_ixp(pt)
+                for comb in Gammas:
+                    GMats=comb.split('.')
+                    #g.message(GMats)
+                    col="G" + "G".join(GMats)
+                    #g.message(col + " correlator")
+                    if GMats[0] == "5":
+                        G=g.gamma[5]
+                    else:
+                        G=g.gamma[GMats[0]]
+
+                    for ind in GMats[1:]:
+                        if ind == "5":
+                            G = G * g.gamma[5]
+                        else:
+                            G= G * g.gamma[ind]
+
+
+                    exec("tCorr=g.slice(g.trace( Pt * G * prop4D_{f1} * G * g.gamma[5] *\
+                          prop4D_{f2} * g.gamma[5] ), 3)".format(f1=flav_names[i],
+                                                                 f2=flav_names[j]))
+                    theader+='\t\t\t' + col
+                    tdata=np.append(tdata,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
+
+                    #g.message("real\t\t\timag")
+                    #for i in range(len(tCorr)):
+                    #    #g.message("{}\t{}".format(tCorr[i].real,tCorr[i].imag))
+                    #    g.message(f"{tCorr[i].real}\t{tCorr[i].imag}")
+
+                os.makedirs(out_folder + "/tmesons",exist_ok=True)
+                np.savetxt("{out_folder}/tmesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
 _{conf_name}.txt".format(out_folder=out_folder,
-                  out_name=out_namet,
-                  Ls=Ls,
-                  b5=str(b5)[0]+str(b5)[2:],
-                  c5=str(c5)[0]+str(c5)[2:],
-                  M5=str(M5)[0]+str(M5)[2:],
-                  mom=momt_str,
-                  conf_name=conf_name),
-                  tdata.T,header=theader,delimiter="\t",comments='#')
+                         out_name=out_namet,
+                         Ls=Ls,
+                         b5=str(b5)[0]+str(b5)[2:],
+                         c5=str(c5)[0]+str(c5)[2:],
+                         M5=str(M5)[0]+str(M5)[2:],
+                         mom=momt_str,
+                         conf_name=conf_name),
+                         tdata.T,header=theader,delimiter="\t",comments='#')
         if(sdir):
-            os.makedirs(out_folder + "/smesons",exist_ok=True)
-            np.savetxt("{out_folder}/smesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
+            g.message("Do contraction in spatial direction")
+            for ks in ks_array:
+                if np.sum(ks > 0) != 0:
+                    moms_str="ks" + "".join(str(elem) for elem in ks)
+                else:
+                    moms_str=""
+
+                ps= 2.0 * np.pi * np.hstack((ks[0:2]/(Dims[0]),0,ks[2]/(Dims[3])))
+                # exp(ix_funny*ps_funny) x_funny * ps_funny = x*px + y*py + t*pt
+                Ps=g.exp_ixp(ps)
+                for comb in Gammas:
+                    GMats=comb.split('.')
+                    #g.message(GMats)
+                    col="G" + "G".join(GMats)
+                    #g.message(col + " correlator")
+                    if GMats[0] == "5":
+                        G=g.gamma[5]
+                    else:
+                        G=g.gamma[GMats[0]]
+
+                    for ind in GMats[1:]:
+                        if ind == "5":
+                            G = G * g.gamma[5]
+                        else:
+                            G= G * g.gamma[ind]
+
+                    exec("sCorr=g.slice(g.trace( Ps * G * prop4D_{f1} * G * g.gamma[5] *\
+                        prop4D_{f2} * g.gamma[5] ), 2)".format(f1=flav_names[i],
+                                                               f2=flav_names[j]))
+                    sheader+='\t\t\t' + col
+                    sdata=np.append(sdata,[[sCorr[s].real for s in range(len(sCorr))]],axis = 0)
+
+                os.makedirs(out_folder + "/smesons",exist_ok=True)
+                np.savetxt("{out_folder}/smesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
 _{conf_name}.txt".format(out_folder=out_folder,
-                  out_name=out_names,
-                  Ls=Ls,
-                  b5=str(b5)[0]+str(b5)[2:],
-                  c5=str(c5)[0]+str(c5)[2:],
-                  M5=str(M5)[0]+str(M5)[2:],
-                  mom=moms_str,
-                  conf_name=conf_name),
-                  sdata.T,header=sheader,delimiter="\t",comments='#')
+                         out_name=out_names,
+                         Ls=Ls,
+                         b5=str(b5)[0]+str(b5)[2:],
+                         c5=str(c5)[0]+str(c5)[2:],
+                         M5=str(M5)[0]+str(M5)[2:],
+                         mom=moms_str,
+                         conf_name=conf_name),
+                         sdata.T,header=sheader,delimiter="\t",comments='#')
+
+
 t1 = g.time()
 g.message("")
 g.message("All contractions were done in: {} sec".format((t1-t0)))
