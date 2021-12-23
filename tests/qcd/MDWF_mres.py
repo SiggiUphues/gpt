@@ -232,7 +232,9 @@ for i in range(len(flav_names)):
         if(tdir):
             g.message("Do contraction in temporal direction")
             for kt in kt_array:
-                if np.sum(np.array(kt) > 0) != 0:
+                # cast tuple to np.array for operations
+                kt = np.array(kt)
+                if np.sum(kt > 0) != 0:
                     momt_str="kt" + "".join(str(elem) for elem in kt)
                 else:
                     momt_str=""
@@ -282,7 +284,9 @@ _{conf_name}.txt".format(out_folder=out_folder,
         if(sdir):
             g.message("Do contraction in spatial direction")
             for ks in ks_array:
-                if np.sum(np.array(ks) > 0) != 0:
+                # cast tuple to np.array for operations
+                ks = np.array(ks)
+                if np.sum( ks > 0) != 0:
                     moms_str="ks" + "".join(str(elem) for elem in ks)
                 else:
                     moms_str=""
