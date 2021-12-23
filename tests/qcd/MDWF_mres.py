@@ -236,6 +236,7 @@ for i in range(len(flav_names)):
         if(tdir):
             g.message("Do contraction in temporal direction for {out_name}".format(out_name=out_namet))
             for kt in kt_array:
+                g.message("Calculate temporal correlator for momentun kt = {}".format(kt))
                 # cast tuple to np.array for operations
                 kt = np.array(kt)
                 if np.sum(kt > 0) != 0:
@@ -295,7 +296,7 @@ _{conf_name}.txt".format(out_folder=out_folder,
                 else:
                     moms_str=""
 
-                #g.message(ks)
+                g.message("Calculate spatial correlator for momentun ks = {}".format(ks))
                 #g.message(moms_str)
                 ps= 2.0 * np.pi * np.hstack((ks[0:2]/(Dims[0]),0,ks[2]/(Dims[3])))
                 # exp(ix_funny*ps_funny) x_funny * ps_funny = x*px + y*py + t*pt
