@@ -2,7 +2,7 @@ import gpt as g
 import numpy as np
 import sys
 import os
-import itertools.product
+import itertools
 
 def get_vec(tag,type, default, ndim):
     res = g.default.get_all(tag, None)
