@@ -2,6 +2,7 @@ import gpt as g
 import numpy as np
 import sys
 import os
+import itertools.product
 
 def get_vec(tag,type, default, ndim):
     res = g.default.get_all(tag, None)
@@ -89,9 +90,18 @@ out_name_add=g.default.get_single("-out-name-add","corrgpt")
 out_folder=g.default.get_single("-out-folder",".")
 tdir=get_bool("-tdir")
 sdir=get_bool("-sdir")
-# momentum for temporal correlator [kx,ky,kz]
-kt=np.array(get_vec("-kt","i",[0,0,0],3))
-kt=kt.astype(int)
+# upper and lower bound for the momenta of the temporal correlator
+# If lower bound is [0,0,0] and the upper bound [2,2,2] the program will
+# calculate all temporal correlators with momenta:
+# [0,0,0],[0,0,1],[0,0,2],[0,1,0], ... , [2,2,1], [2,2,2]
+kt_upbound=np.array(get_vec("-kt_upbound","i",[0,0,0],3))
+kt_upbound=kt_upbound.astype(int)
+kt_lowbound=np.array(get_vec("-kt_upbound","i",[0,0,0],3))
+kt_lowbound=kt_upbound.astype(int)
+kt_x=np.arrange(kt_lowbound[0],kt_upbound[0]+1)
+kt_y=np.arrange(kt_lowbound[1],kt_upbound[1]+1)
+kt_z=np.arrange(kt_lowbound[2],kt_upbound[2]+1)
+kt_array=list(itertools.product(kt_x,kt_y,kt_z)
 if np.sum(kt > 0) != 0:
     momt_str="kt" + "".join(str(elem) for elem in kt)
 else:
