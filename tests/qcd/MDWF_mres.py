@@ -114,9 +114,12 @@ ks_lowbound=ks_upbound.astype(int)
 ks_x=np.arange(ks_lowbound[0],ks_upbound[0]+1)
 ks_y=np.arange(ks_lowbound[1],ks_upbound[1]+1)
 ks_t=np.arange(ks_lowbound[2],ks_upbound[2]+1)
+g.message(ks_x)
+g.message(ks_y)
+g.message(ks_t)
 ks_array=list(itertools.product(ks_x,ks_y,ks_t))
 
-
+g.message(ks_array)
 
 # additional correlator channel
 Gopt=g.default.get_single("-G",None)
@@ -291,8 +294,8 @@ _{conf_name}.txt".format(out_folder=out_folder,
                 else:
                     moms_str=""
 
-                g.message(ks)
-                g.message(moms_str)
+                #g.message(ks)
+                #g.message(moms_str)
                 ps= 2.0 * np.pi * np.hstack((ks[0:2]/(Dims[0]),0,ks[2]/(Dims[3])))
                 # exp(ix_funny*ps_funny) x_funny * ps_funny = x*px + y*py + t*pt
                 Ps=g.exp_ixp(ps)
