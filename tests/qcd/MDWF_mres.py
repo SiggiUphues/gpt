@@ -101,7 +101,7 @@ kt_lowbound=kt_upbound.astype(int)
 kt_x=np.arrange(kt_lowbound[0],kt_upbound[0]+1)
 kt_y=np.arrange(kt_lowbound[1],kt_upbound[1]+1)
 kt_z=np.arrange(kt_lowbound[2],kt_upbound[2]+1)
-kt_array=list(itertools.product(kt_x,kt_y,kt_z)
+kt_array=list(itertools.product(kt_x,kt_y,kt_z))
 
 # upper and lower bound for the momenta of the spatial correlator
 # If lower bound is [0,0,0] and the upper bound [2,2,2] the program will
@@ -114,7 +114,7 @@ ks_lowbound=ks_upbound.astype(int)
 ks_x=np.arrange(ks_lowbound[0],ks_upbound[0]+1)
 ks_y=np.arrange(ks_lowbound[1],ks_upbound[1]+1)
 ks_t=np.arrange(ks_lowbound[2],ks_upbound[2]+1)
-ks_array=list(itertools.product(ks_x,ks_y,ks_t)
+ks_array=list(itertools.product(ks_x,ks_y,ks_t))
 
 
 
