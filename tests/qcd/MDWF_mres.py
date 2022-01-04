@@ -273,7 +273,7 @@ for i in range(len(flav_names)):
                                                                  f2=flav_names[j]))
                     if not theader_complete:
                         theader+='\t\t\t' + col
-                    if len(tcorrdata == 0):
+                    if len(tcorrdata) == 0:
                         tcorrdata=np.array([[tCorr[t].real for t in range(len(tCorr))]])
                     else:
                         tcorrdata=np.append(tcorrdata,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
@@ -333,7 +333,7 @@ _{conf_name}.txt".format(out_folder=out_folder,
                                                                f2=flav_names[j]))
                     if not sheader_complete:
                         sheader+='\t\t\t' + col
-                    if len(scorrdata == 0):
+                    if len(scorrdata) == 0:
                         scorrdata=np.array([[sCorr[t].real for t in range(len(sCorr))]])
                     else:
                         scorrdata=np.append(scorrdata,[[sCorr[t].real for t in range(len(sCorr))]],axis = 0)
