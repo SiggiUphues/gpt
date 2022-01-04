@@ -235,6 +235,7 @@ for i in range(len(flav_names)):
 
         if(tdir):
             g.message("Do contraction in temporal direction for {out_name}".format(out_name=out_namet))
+            theader_complete=False
             for kt in kt_array:
                 g.message("Calculate temporal correlator for momentum kt = {}".format(kt))
                 # cast tuple to np.array for operations
@@ -266,8 +267,8 @@ for i in range(len(flav_names)):
 
                     exec("tCorr=g.slice(g.trace( Pt * G * prop4D_{f1} * G * g.gamma[5] *\
                           prop4D_{f2} * g.gamma[5] ), 3)".format(f1=flav_names[i],
-                                                                 f2=flav_names[j]))
-                    theader+='\t\t\t' + col
+                    if(!theader_complete):                                             f2=flav_names[j]))
+                        theader+='\t\t\t' + col
                     tdata=np.append(tdata,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
 
                     #g.message("real\t\t\timag")
@@ -276,6 +277,7 @@ for i in range(len(flav_names)):
                     #    g.message(f"{tCorr[i].real}\t{tCorr[i].imag}")
 
                 os.makedirs(out_folder + "/tmesons",exist_ok=True)
+                theader_complete=True
                 np.savetxt("{out_folder}/tmesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
 _{conf_name}.txt".format(out_folder=out_folder,
                          out_name=out_namet,
@@ -288,6 +290,7 @@ _{conf_name}.txt".format(out_folder=out_folder,
                          tdata.T,header=theader,delimiter="\t",comments='#')
         if(sdir):
             g.message("Do contraction in spatial direction for {out_name}".format(out_name=out_names))
+            sheader_complete=False
             for ks in ks_array:
                 # cast tuple to np.array for operations
                 ks = np.array(ks)
@@ -320,10 +323,12 @@ _{conf_name}.txt".format(out_folder=out_folder,
                     exec("sCorr=g.slice(g.trace( Ps * G * prop4D_{f1} * G * g.gamma[5] *\
                         prop4D_{f2} * g.gamma[5] ), 2)".format(f1=flav_names[i],
                                                                f2=flav_names[j]))
-                    sheader+='\t\t\t' + col
+                    if(!sheader_complete):
+                        sheader+='\t\t\t' + col
                     sdata=np.append(sdata,[[sCorr[s].real for s in range(len(sCorr))]],axis = 0)
 
                 os.makedirs(out_folder + "/smesons",exist_ok=True)
+                sheader_complete=True
                 np.savetxt("{out_folder}/smesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
 _{conf_name}.txt".format(out_folder=out_folder,
                          out_name=out_names,
