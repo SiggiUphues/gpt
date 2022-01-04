@@ -268,7 +268,7 @@ for i in range(len(flav_names)):
                     exec("tCorr=g.slice(g.trace( Pt * G * prop4D_{f1} * G * g.gamma[5] *\
                           prop4D_{f2} * g.gamma[5] ), 3)".format(f1=flav_names[i],
                                                                  f2=flav_names[j]))
-                    if(!theader_complete):
+                    if not theader_complete:
                         theader+='\t\t\t' + col
                     tdata=np.append(tdata,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
 
@@ -324,7 +324,7 @@ _{conf_name}.txt".format(out_folder=out_folder,
                     exec("sCorr=g.slice(g.trace( Ps * G * prop4D_{f1} * G * g.gamma[5] *\
                         prop4D_{f2} * g.gamma[5] ), 2)".format(f1=flav_names[i],
                                                                f2=flav_names[j]))
-                    if(!sheader_complete):
+                    if not sheader_complete:
                         sheader+='\t\t\t' + col
                     sdata=np.append(sdata,[[sCorr[s].real for s in range(len(sCorr))]],axis = 0)
 
