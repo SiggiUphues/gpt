@@ -267,7 +267,8 @@ for i in range(len(flav_names)):
 
                     exec("tCorr=g.slice(g.trace( Pt * G * prop4D_{f1} * G * g.gamma[5] *\
                           prop4D_{f2} * g.gamma[5] ), 3)".format(f1=flav_names[i],
-                    if(!theader_complete):                                             f2=flav_names[j]))
+                                                                 f2=flav_names[j]))
+                    if(!theader_complete):
                         theader+='\t\t\t' + col
                     tdata=np.append(tdata,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
 
