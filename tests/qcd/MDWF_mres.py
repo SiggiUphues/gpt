@@ -199,6 +199,8 @@ for i in range(len(flav_names)):
         sheader=""
         tdata=np.array([])
         sdata=np.array([])
+        t_firstdata=np.array([])
+        s_firstdata=np.array([])
         #g.message("Jq5:")
         #g.message("real\t\t\timag")
         #for i in range(len(Jq5)):
@@ -206,15 +208,15 @@ for i in range(len(flav_names)):
         #print(flav_names[i],flav_names[j])
         if(tdir):
             theader='t\t'
-            tdata=np.array([[int(t) for t in range(Dims[3])]])
+            t_firstdata=np.array([[int(t) for t in range(Dims[3])]])
         if(sdir):
             sheader='z\t'
-            sdata=np.array([[int(z) for z in range(Dims[2])]])
+            s_firstdata=np.array([[int(z) for z in range(Dims[2])]])
         if flav_names[i] == flav_names[j]:
             #print("inside if")
             if(tdir):
                 theader+='\t\t\tJq5'
-                exec("tdata=np.append(tdata,\
+                exec("t_firstdata=np.append(t_firstdata,\
                  [[Jq5_{f}[t].real for t in range(len(Jq5_{f}))]], axis = 0)".format(f=flav_names[i]))
 
             out_namet="{out_name_add}_pt_{f}{f}_t_m{f}{m}".format(out_name_add=out_name_add,f=flav_names[i],m=str(flav_masses[i])[2:])
@@ -237,6 +239,7 @@ for i in range(len(flav_names)):
             g.message("Do contraction in temporal direction for {out_name}".format(out_name=out_namet))
             theader_complete=False
             for kt in kt_array:
+                tcorrdata=np.array([])
                 g.message("Calculate temporal correlator for momentum kt = {}".format(kt))
                 # cast tuple to np.array for operations
                 kt = np.array(kt)
@@ -270,13 +273,16 @@ for i in range(len(flav_names)):
                                                                  f2=flav_names[j]))
                     if not theader_complete:
                         theader+='\t\t\t' + col
-                    tdata=np.append(tdata,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
+                    if len(tcorrdata == 0):
+                        tcorrdata=np.array([[tCorr[t].real for t in range(len(tCorr))]])
+                    else:
+                        tcorrdata=np.append(tcorrdata,[[tCorr[t].real for t in range(len(tCorr))]],axis = 0)
 
                     #g.message("real\t\t\timag")
                     #for i in range(len(tCorr)):
                     #    #g.message("{}\t{}".format(tCorr[i].real,tCorr[i].imag))
                     #    g.message(f"{tCorr[i].real}\t{tCorr[i].imag}")
-
+                tdata=np.concatenate((t_firstdata,tcorrdata),axis = 0)
                 os.makedirs(out_folder + "/tmesons",exist_ok=True)
                 theader_complete=True
                 np.savetxt("{out_folder}/tmesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
@@ -293,6 +299,7 @@ _{conf_name}.txt".format(out_folder=out_folder,
             g.message("Do contraction in spatial direction for {out_name}".format(out_name=out_names))
             sheader_complete=False
             for ks in ks_array:
+                scorrdata=np.array([])
                 # cast tuple to np.array for operations
                 ks = np.array(ks)
                 if np.sum( ks > 0) != 0:
@@ -326,8 +333,12 @@ _{conf_name}.txt".format(out_folder=out_folder,
                                                                f2=flav_names[j]))
                     if not sheader_complete:
                         sheader+='\t\t\t' + col
-                    sdata=np.append(sdata,[[sCorr[s].real for s in range(len(sCorr))]],axis = 0)
+                    if len(scorrdata == 0):
+                        scorrdata=np.array([[sCorr[t].real for t in range(len(sCorr))]])
+                    else:
+                        scorrdata=np.append(scorrdata,[[sCorr[t].real for t in range(len(sCorr))]],axis = 0)
 
+                sdata=np.concatenate((s_firstdata,scorrdata),axis = 0)
                 os.makedirs(out_folder + "/smesons",exist_ok=True)
                 sheader_complete=True
                 np.savetxt("{out_folder}/smesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
