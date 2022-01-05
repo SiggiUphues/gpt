@@ -208,15 +208,15 @@ for i in range(len(flav_names)):
         #    g.message(f"{Jq5[i].real}\t{Jq5[i].imag}")
         #print(flav_names[i],flav_names[j])
         if(tdir):
-            theader='t\t'
+            #theader='t\t'
             t_coord=np.array([[int(t) for t in range(Dims[3])]])
         if(sdir):
-            sheader='z\t'
+            #sheader='z\t'
             z_coord=np.array([[int(z) for z in range(Dims[2])]])
         if flav_names[i] == flav_names[j]:
             #print("inside if")
             if(tdir):
-                theader+='\t\t\tJq5'
+                #theader+='\t\t\tJq5'
                 exec("t_Jq5_data=np.array([[Jq5_{f}[t].real for t in range(len(Jq5_{f}))]])".format(f=flav_names[i]))
 
             out_namet="{out_name_add}_pt_{f}{f}_t_m{f}{m}".format(out_name_add=out_name_add,f=flav_names[i],m=str(flav_masses[i])[2:])
@@ -237,8 +237,9 @@ for i in range(len(flav_names)):
 
         if(tdir):
             g.message("Do contraction in temporal direction for {out_name}".format(out_name=out_namet))
-            theader_complete=False
+            #theader_complete=False
             for kt in kt_array:
+                tcorrheader=""
                 tcorrdata=np.array([])
                 g.message("Calculate temporal correlator for momentum kt = {}".format(kt))
                 # cast tuple to np.array for operations
@@ -271,8 +272,8 @@ for i in range(len(flav_names)):
                     exec("tCorr=g.slice(g.trace( Pt * G * prop4D_{f1} * G * g.gamma[5] *\
                           prop4D_{f2} * g.gamma[5] ), 3)".format(f1=flav_names[i],
                                                                  f2=flav_names[j]))
-                    if not theader_complete:
-                        theader+='\t\t\t' + col
+                    #if not theader_complete:
+                    tcorrheader+='\t\t\t' + col
                     if len(tcorrdata) == 0:
                         tcorrdata=np.array([[tCorr[t].real for t in range(len(tCorr))]])
                     else:
@@ -283,11 +284,13 @@ for i in range(len(flav_names)):
                     #    #g.message("{}\t{}".format(tCorr[i].real,tCorr[i].imag))
                     #    g.message(f"{tCorr[i].real}\t{tCorr[i].imag}")
                 if flav_names[i] == flav_names[j] and np.sum(kt > 0) == 0:
+                    theader='t\t\t\t\tJq5' + tcorrheader
                     tdata=np.concatenate((t_coord,t_Jq5_data,tcorrdata),axis = 0)
                 else:
                     tdata=np.concatenate((t_coord,tcorrdata),axis = 0)
+                    theader='t\t' + tcorrheader
                 os.makedirs(out_folder + "/tmesons",exist_ok=True)
-                theader_complete=True
+                #theader_complete=True
                 np.savetxt("{out_folder}/tmesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
 _{conf_name}.txt".format(out_folder=out_folder,
                          out_name=out_namet,
@@ -300,9 +303,10 @@ _{conf_name}.txt".format(out_folder=out_folder,
                          tdata.T,header=theader,delimiter="\t",comments='#')
         if(sdir):
             g.message("Do contraction in spatial direction for {out_name}".format(out_name=out_names))
-            sheader_complete=False
+            #sheader_complete=False
             for ks in ks_array:
                 scorrdata=np.array([])
+                scorrheader=""
                 # cast tuple to np.array for operations
                 ks = np.array(ks)
                 if np.sum( ks > 0) != 0:
@@ -334,16 +338,17 @@ _{conf_name}.txt".format(out_folder=out_folder,
                     exec("sCorr=g.slice(g.trace( Ps * G * prop4D_{f1} * G * g.gamma[5] *\
                         prop4D_{f2} * g.gamma[5] ), 2)".format(f1=flav_names[i],
                                                                f2=flav_names[j]))
-                    if not sheader_complete:
-                        sheader+='\t\t\t' + col
+                    #if not sheader_complete:
+                    scorrheader+='\t\t\t' + col
                     if len(scorrdata) == 0:
                         scorrdata=np.array([[sCorr[t].real for t in range(len(sCorr))]])
                     else:
                         scorrdata=np.append(scorrdata,[[sCorr[t].real for t in range(len(sCorr))]],axis = 0)
 
                 sdata=np.concatenate((z_coord,scorrdata),axis = 0)
+                sheader='z\t' + scorrheader
                 os.makedirs(out_folder + "/smesons",exist_ok=True)
-                sheader_complete=True
+                #sheader_complete=True
                 np.savetxt("{out_folder}/smesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
 _{conf_name}.txt".format(out_folder=out_folder,
                          out_name=out_names,
