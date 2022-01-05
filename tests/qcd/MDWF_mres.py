@@ -199,8 +199,9 @@ for i in range(len(flav_names)):
         sheader=""
         tdata=np.array([])
         sdata=np.array([])
-        t_firstdata=np.array([])
-        s_firstdata=np.array([])
+        t_coord=np.array([])
+        t_Jq5_data=np.array([])
+        z_coord=np.array([])
         #g.message("Jq5:")
         #g.message("real\t\t\timag")
         #for i in range(len(Jq5)):
@@ -208,16 +209,15 @@ for i in range(len(flav_names)):
         #print(flav_names[i],flav_names[j])
         if(tdir):
             theader='t\t'
-            t_firstdata=np.array([[int(t) for t in range(Dims[3])]])
+            t_coord=np.array([[int(t) for t in range(Dims[3])]])
         if(sdir):
             sheader='z\t'
-            s_firstdata=np.array([[int(z) for z in range(Dims[2])]])
+            z_coord=np.array([[int(z) for z in range(Dims[2])]])
         if flav_names[i] == flav_names[j]:
             #print("inside if")
             if(tdir):
                 theader+='\t\t\tJq5'
-                exec("t_firstdata=np.append(t_firstdata,\
-                 [[Jq5_{f}[t].real for t in range(len(Jq5_{f}))]], axis = 0)".format(f=flav_names[i]))
+                exec("t_Jq5_data=np.array([[Jq5_{f}[t].real for t in range(len(Jq5_{f}))]])".format(f=flav_names[i]))
 
             out_namet="{out_name_add}_pt_{f}{f}_t_m{f}{m}".format(out_name_add=out_name_add,f=flav_names[i],m=str(flav_masses[i])[2:])
             out_names="{out_name_add}_pt_{f}{f}_s_m{f}{m}".format(out_name_add=out_name_add,f=flav_names[i],m=str(flav_masses[i])[2:])
@@ -282,7 +282,10 @@ for i in range(len(flav_names)):
                     #for i in range(len(tCorr)):
                     #    #g.message("{}\t{}".format(tCorr[i].real,tCorr[i].imag))
                     #    g.message(f"{tCorr[i].real}\t{tCorr[i].imag}")
-                tdata=np.concatenate((t_firstdata,tcorrdata),axis = 0)
+                if flav_names[i] == flav_names[j] and np.sum(kt > 0) == 0:
+                    tdata=np.concatenate((t_coord,t_Jq5_data,tcorrdata),axis = 0)
+                else:
+                    tdata=np.concatenate((t_coord,tcorrdata),axis = 0)
                 os.makedirs(out_folder + "/tmesons",exist_ok=True)
                 theader_complete=True
                 np.savetxt("{out_folder}/tmesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
@@ -338,7 +341,7 @@ _{conf_name}.txt".format(out_folder=out_folder,
                     else:
                         scorrdata=np.append(scorrdata,[[sCorr[t].real for t in range(len(sCorr))]],axis = 0)
 
-                sdata=np.concatenate((s_firstdata,scorrdata),axis = 0)
+                sdata=np.concatenate((z_coord,scorrdata),axis = 0)
                 os.makedirs(out_folder + "/smesons",exist_ok=True)
                 sheader_complete=True
                 np.savetxt("{out_folder}/smesons/{out_name}Ls{Ls}b{b5}c{c5}M{M5}{mom}\
