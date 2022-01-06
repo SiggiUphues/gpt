@@ -270,7 +270,7 @@ for i in range(len(flav_names)):
 
 
                     exec("tCorr=g.slice(g.trace( Pt * G * prop4D_{f1} * G * g.gamma[5] *\
-                          prop4D_{f2} * g.gamma[5] ), 3)".format(f1=flav_names[i],
+                          g.adj(prop4D_{f2}) * g.gamma[5] ), 3)".format(f1=flav_names[i],
                                                                  f2=flav_names[j]))
                     #if not theader_complete:
                     tcorrheader+='\t\t\t' + col
@@ -336,7 +336,7 @@ _{conf_name}.txt".format(out_folder=out_folder,
                             G= G * g.gamma[ind]
 
                     exec("sCorr=g.slice(g.trace( Ps * G * prop4D_{f1} * G * g.gamma[5] *\
-                        prop4D_{f2} * g.gamma[5] ), 2)".format(f1=flav_names[i],
+                        g.adj(prop4D_{f2}) * g.gamma[5] ), 2)".format(f1=flav_names[i],
                                                                f2=flav_names[j]))
                     #if not sheader_complete:
                     scorrheader+='\t\t\t' + col
