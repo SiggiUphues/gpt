@@ -42,6 +42,7 @@ def get_bool(tag,default = False):
 def get_Jq5(prop5D):
     # get all Ls slices
     prop4DLs=g.separate(prop5D,0)
+    Ls=len(prop4DLs)
     # create Correlator at the midpoint of the 5-th direction
     p_plus=g(prop4DLs[int((Ls/2)-1)] + g.gamma[5] * prop4DLs[int((Ls/2)-1)] )
     p_minus=g(prop4DLs[int(Ls/2)] - g.gamma[5] * prop4DLs[int(Ls/2)] )
