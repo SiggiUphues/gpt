@@ -94,9 +94,9 @@ sdir=get_bool("-sdir")
 # If lower bound is [0,0,0] and the upper bound [2,2,2] the program will
 # calculate all temporal correlators with momenta:
 # [0,0,0],[0,0,1],[0,0,2],[0,1,0], ... , [2,2,1], [2,2,2]
-kt_upbound=np.array(get_vec("-kt_upbound","i",[0,0,0],3))
+kt_upbound=np.array(get_vec("-kt-upbound","i",[0,0,0],3))
 kt_upbound=kt_upbound.astype(int)
-kt_lowbound=np.array(get_vec("-kt_lowbound","i",[0,0,0],3))
+kt_lowbound=np.array(get_vec("-kt-lowbound","i",[0,0,0],3))
 kt_lowbound=kt_lowbound.astype(int)
 kt_x=np.arange(kt_lowbound[0],kt_upbound[0]+1)
 kt_y=np.arange(kt_lowbound[1],kt_upbound[1]+1)
@@ -107,9 +107,9 @@ kt_array=list(itertools.product(kt_x,kt_y,kt_z))
 # If lower bound is [0,0,0] and the upper bound [2,2,2] the program will
 # calculate all spatial correlators with momenta:
 # [0,0,0],[0,0,1],[0,0,2],[0,1,0], ... , [2,2,1], [2,2,2]
-ks_upbound=np.array(get_vec("-ks_upbound","i",[0,0,0],3))
+ks_upbound=np.array(get_vec("-ks-upbound","i",[0,0,0],3))
 ks_upbound=ks_upbound.astype(int)
-ks_lowbound=np.array(get_vec("-ks_lowbound","i",[0,0,0],3))
+ks_lowbound=np.array(get_vec("-ks-lowbound","i",[0,0,0],3))
 ks_lowbound=ks_lowbound.astype(int)
 #g.message("ks_x=np.arange({},{}+1)".format(ks_lowbound[0],ks_upbound[0]))
 ks_x=np.arange(ks_lowbound[0],ks_upbound[0]+1)
@@ -236,12 +236,12 @@ for i in range(len(flav_names)):
                        m2=str(flav_masses[j])[2:])
 
         if(tdir):
-            g.message("Do contraction in temporal direction for {out_name}".format(out_name=out_namet))
+            g.message("Do contraction in temporal direction for {out_name} with momenta from kt = {ktlow} up to kt = {ktup}".format(out_name=out_namet,ktlow=kt_array[0],ktup=kt_array[-1]))
             #theader_complete=False
             for kt in kt_array:
                 tcorrheader=""
                 tcorrdata=np.array([])
-                g.message("Calculate temporal correlator for momentum kt = {}".format(kt))
+                #g.message("Calculate temporal correlator for momentum kt = {}".format(kt))
                 # cast tuple to np.array for operations
                 kt = np.array(kt)
                 if np.sum(kt > 0) != 0:
@@ -269,7 +269,10 @@ for i in range(len(flav_names)):
                             G= G * g.gamma[ind]
 
 
-                    exec("tCorr=g.slice(g.trace( Pt * G * prop4D_{f1} * G * g.gamma[5] *\
+                    # We use adj(G) for the second gamma matrix to use the same convention used in the Hadrons code.
+                    # If we would not use the same convention the absolute value of each slice would be the same
+                    # but if G is a product of an even number of gamma matrices the sign would be different.
+                    exec("tCorr=g.slice(g.trace( Pt * G * prop4D_{f1} * g.adj(G) * g.gamma[5] *\
                           g.adj(prop4D_{f2}) * g.gamma[5] ), 3)".format(f1=flav_names[i],
                                                                  f2=flav_names[j]))
                     #if not theader_complete:
@@ -302,7 +305,7 @@ _{conf_name}.txt".format(out_folder=out_folder,
                          conf_name=conf_name),
                          tdata.T,header=theader,delimiter="\t",comments='#')
         if(sdir):
-            g.message("Do contraction in spatial direction for {out_name}".format(out_name=out_names))
+            g.message("Do contraction in spatial direction for {out_name} with momenta from ks = {kslow} up to ks = {ksup}".format(out_name=out_names,kslow=ks_array[0],ksup=ks_array[-1]))
             #sheader_complete=False
             for ks in ks_array:
                 scorrdata=np.array([])
@@ -314,7 +317,7 @@ _{conf_name}.txt".format(out_folder=out_folder,
                 else:
                     moms_str=""
 
-                g.message("Calculate spatial correlator for momentum ks = {}".format(ks))
+                #g.message("Calculate spatial correlator for momentum ks = {}".format(ks))
                 #g.message(moms_str)
                 ps= 2.0 * np.pi * np.hstack((ks[0:2]/(Dims[0]),0,ks[2]/(Dims[3])))
                 # exp(ix_funny*ps_funny) x_funny * ps_funny = x*px + y*py + t*pt
@@ -334,8 +337,11 @@ _{conf_name}.txt".format(out_folder=out_folder,
                             G = G * g.gamma[5]
                         else:
                             G= G * g.gamma[ind]
-
-                    exec("sCorr=g.slice(g.trace( Ps * G * prop4D_{f1} * G * g.gamma[5] *\
+                    
+                    # We use adj(G) for the second gamma matrix to use the same convention used in the Hadrons code.
+                    # If we would not use the same convention the absolute value of each slice would be the same
+                    # but if G is a product of an even number of gamma matrices the sign would be different.
+                    exec("sCorr=g.slice(g.trace( Ps * G * prop4D_{f1} * g.adj(G) * g.gamma[5] *\
                         g.adj(prop4D_{f2}) * g.gamma[5] ), 2)".format(f1=flav_names[i],
                                                                f2=flav_names[j]))
                     #if not sheader_complete:
