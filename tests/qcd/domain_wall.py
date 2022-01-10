@@ -9,6 +9,7 @@ import numpy as np
 import sys
 import time
 
+
 # load configuration
 # U = g.load("/hpcgpfs01/work/clehner/configs/16I_0p01_0p04/ckpoint_lat.IEEE64BIG.1100")
 rng = g.random("test")
@@ -128,7 +129,9 @@ slv_5d = inv.preconditioned(pc.eo2_ne(), cg)
 # track of iteration counts separately
 slv_5d_kappa = inv.preconditioned(pc.eo2_kappa_ne(), cg_kappa)
 slv_5d_e = inv.preconditioned(pc.eo2_ne(), cg_e)
-slv_qm = qm.propagator(slv_5d)
+
+# To calculate Jq5 which is necessary for the residual mass, we need a solver for the 5d propgator
+slv_qm_5d = slv_5d(qm)
 slv_qm_e = qm.propagator(slv_5d_e)
 slv_qz = qz.propagator(slv_5d)
 slv_qz_kappa = qz.propagator(slv_5d_kappa)
@@ -160,13 +163,14 @@ assert eps2 < 1e-10
 
 
 # propagator
-# dst_qm_e = g.mspincolor(grid)
 dst_qm = g.mspincolor(grid)
 dst_qz = g.mspincolor(grid)
 dst_qz_kappa = g.mspincolor(grid)
 
-# dst_qm_e @= slv_qm_e * src
-dst_qm @= slv_qm * src
+# Solve for the 5d and 4d propagator
+dst_qm_5d = g(slv_qm_5d * qm.ImportPhysicalFermionSource * src)
+dst_qm @= qm.ExportPhysicalFermionSolution * dst_qm_5d
+
 dst_qz @= slv_qz * src
 dst_qz_kappa @= slv_qz_kappa * src
 
@@ -176,6 +180,16 @@ g.message(f"Kappa similarity transformed solve: {eps2}")
 assert eps2 < 1e-6
 assert len(cg.history) > len(cg_kappa.history)
 
+# calculate J5q
+p = qm.J5q(dst_qm_5d)
+J5q = g.slice(g.trace(p * g.adj(p)), 3)
+
+g.message("J5q:")
+g.message("real\t\t\timag")
+for i in range(len(J5q)):
+    g.message(f"{J5q[i].real}\t{J5q[i].imag}")
+
+g.message("")
 # two-point
 # correlator_ref= g.slice(g.trace(dst_qm_e * g.adj(dst_qm_e)), 3)
 correlator_ref = [
