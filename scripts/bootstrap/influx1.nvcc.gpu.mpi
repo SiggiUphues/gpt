@@ -1,0 +1,162 @@
+#!/bin/bash
+
+function check_argument {
+local string="$1"
+local arguments="$2"
+
+echo "$(echo $2 | awk -v string=${string} '{ for (i = 1;i<=NF;i++ ) { if ($i == string) {print $i}}}')"
+
+}
+
+
+commands="$*"
+
+if [ -n "$(echo "${commands}" | grep "CUDA11.3" )" ] 
+then
+Cuda_Vers="$(check_argument "CUDA11.3" "${commands}")"
+elif [ -n "$(echo "${commands}" | grep "CUDA11.6" )" ]
+then
+Cuda_Vers="$(check_argument "CUDA11.6" "${commands}")"
+else
+    echo "Usage: bash influx1.nvcc.gpu.mpi CUDA-VERSION with CUDA-VERSION = CUDA11.3 or CUDA11.6"
+    exit 0
+fi
+
+echo "Do installation for ${Cuda_Vers}"
+
+#
+# Get compilers
+#
+module purge
+
+module load compilers/gnu
+
+if [ "${Cuda_Vers}" = "CUDA11.3" ]
+then
+    module load cuda/11.3
+    module load mpi/openmpi/ompi-cuda-4.0.4
+fi
+
+if [ "${Cuda_Vers}" = "CUDA11.6" ]
+then 
+    module load cuda/11.6
+    module load mpi/openmpi/ompi-cuda-4.1.2 
+    echo "
+##############################################################################
+The Configuration for Cuda 11.6 does not yet work for mukti GPU jobs!
+##############################################################################"
+fi
+#
+# Get and set other things
+#
+module load fftw/3
+
+export OMPI_MCA_btl=^uct,openib
+export UCX_MEMTYPE_CACHE=n
+export UCX_RNDV_SCHEME=put_zcopy
+
+module list
+
+#
+# Get root directory
+#
+root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." >/dev/null 2>&1 && pwd )"
+
+#
+# Precompile python
+#
+echo "Compile gpt"
+python3 -m compileall ${root}/lib/gpt
+
+#
+# Create dependencies and download
+#
+dep=${root}/dependencies_testCUDA11.6
+if [ ! -f ${dep}/Grid/build/Grid/libGrid.a ];
+then
+
+        if [ -d ${dep} ];
+        then
+            echo "$dep already exists ; rm -rf $dep before bootstrapping again"
+            exit 1
+        fi
+
+        mkdir -p ${dep}
+        cd ${dep}
+
+        #
+        # Lime
+        #
+        wget https://github.com/usqcd-software/c-lime/tarball/master
+        tar xzf master
+        mv usqcd-software-c-lime* lime
+        rm -f master
+        cd lime
+        ./autogen.sh
+        CC=gcc ./configure
+        make -j 16
+        cd ..
+
+        #
+        # Grid
+        #
+        git clone https://github.com/lehner/Grid.git
+        cd Grid
+        git checkout feature/gpt
+        ./bootstrap.sh
+        mkdir build
+        cd build
+        if [ "${Cuda_Vers}" = "CUDA11.3" ]
+        then
+            CXX=nvcc MPICXX=mpicxx \
+            CXXFLAGS="-ccbin g++ -gencode arch=compute_70,code=sm_70 -std=c++14 --cudart shared --compiler-options -fPIC -I/usr/local/openmpi-4.0.4/include" \
+            LIBS="-lrt -lmpi" \
+            LDFLAGS="--cudart shared --compiler-options -fopenmp -L/usr/lib64 --linker-options=-rpath,/usr/lib64 --linker-options=-rpath,/usr/local/openmpi-4.0.4/lib --linker-options=--enable-new-dtags -L/usr/local/openmpi-4.0.4/lib" \
+            ../configure \
+              --enable-setdevice \
+              --enable-unified=no \
+              --enable-accelerator=cuda \
+              --enable-alloc-align=4k \
+              --enable-accelerator-cshift \
+              --enable-shm=nvlink \
+              --enable-comms=mpi-auto \
+              --disable-comms-threads \
+              --with-lime=${dep}/lime \
+              --enable-simd=GPU
+        fi
+        
+        if [ "${Cuda_Vers}" = "CUDA11.6" ]
+        then
+            CXX=nvcc MPICXX=mpicxx \
+            CXXFLAGS="-ccbin g++ -gencode arch=compute_70,code=sm_70 -std=c++14 --cudart shared --compiler-options -fPIC -I/usr/local/openmpi-4.1.2/include" \
+            LIBS="-lrt -lmpi" \
+            LDFLAGS="--cudart shared --compiler-options -fopenmp -L/usr/local/openmpi-4.1.2/lib64 -L/usr/local/hwloc/lib --linker-options=-rpath,/usr/local/openmpi-4.1.2/lib64 --linker-options=-rpath,/usr/local/hwloc/lib --linker-options=--enable-new-dtags" \
+            ../configure \
+              --enable-setdevice \
+              --enable-unified=no \
+              --enable-accelerator=cuda \
+              --enable-alloc-align=4k \
+              --enable-accelerator-cshift \
+              --enable-shm=nvlink \
+              --enable-comms=mpi-auto \
+              --disable-comms-threads \
+              --with-lime=${dep}/lime \
+              --enable-simd=GPU
+        fi
+
+        cd Grid
+        make -j 16
+fi
+
+if [ ! -f ${root}/lib/cgpt/build/cgpt.so ];
+then
+        #
+        # cgpt
+        #
+        cd ${root}/lib/cgpt
+        ./make ${dep}/Grid/build 16
+fi
+
+
+echo "To use:"
+echo "source ${root}/lib/cgpt/build/source.sh"
