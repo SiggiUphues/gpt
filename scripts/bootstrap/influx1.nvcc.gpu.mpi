@@ -71,7 +71,7 @@ python3 -m compileall ${root}/lib/gpt
 #
 # Create dependencies and download
 #
-dep=${root}/dependencies_testCUDA11.6
+dep=${root}/dependencies
 if [ ! -f ${dep}/Grid/build/Grid/libGrid.a ];
 then
 
