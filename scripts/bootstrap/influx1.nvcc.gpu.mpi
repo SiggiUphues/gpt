@@ -100,8 +100,22 @@ then
         #
         # Grid
         #
-        git clone https://github.com/lehner/Grid.git
+        ###############################################################################################
+        # original repo of Christoph Lehner
+        ###############################################################################################
+        #git clone https://github.com/lehner/Grid.git
+        #cd Grid
+        ###############################################################################################
+
+        ################################################################################################
+        # my fork 
+        ################################################################################################
+        git clone https://github.com/SiggiUphues/Grid_for_gpt.git Grid
         cd Grid
+        # add an upstream for the remote to sync the fork with the original repo from the command line
+        git remote add upstream https://github.com/lehner/Grid.git
+        ################################################################################################
+
         git checkout feature/gpt
         ./bootstrap.sh
         mkdir build
